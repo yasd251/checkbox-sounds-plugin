@@ -1,4 +1,4 @@
-import { App, Plugin, PluginSettingTab, Setting, FileSystemAdapter, PluginManifest } from 'obsidian';
+import { App, Plugin, PluginSettingTab, Setting, PluginManifest } from 'obsidian';
 import { Howl } from "howler";
 import { sound1, sound2 } from "./defaultSounds";
 
@@ -78,7 +78,7 @@ class CheckboxSoundsSettingsTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Checkbox Sound')
-			.setDesc('Choose a sound to play when checkbox is ticked')
+			.setDesc('Choose a sound to play when checkbox is ticked (more sounds coming soon!)')
 			.addDropdown((text) => {
 				text.addOption("sound1", "completed_1")
 				text.addOption("sound2", "pop")
