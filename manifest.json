@@ -1,6 +1,6 @@
 {
 	"id": "checkbox-sounds",
-	"name": "Checkbox Sound Plugin",
+	"name": "Checkbox Sounds",
 	"version": "1.0.1",
 	"minAppVersion": "0.15.0",
 	"description": "Adds a nice completion sound when a checkbox is ticked-off",
