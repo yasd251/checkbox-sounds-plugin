@@ -48,7 +48,6 @@ export default class CheckboxSounds extends Plugin {
 function playSound(chosen_sound) {
 	// play completion sound
 	let file = sound1
-	console.log(chosen_sound)
 	switch (chosen_sound) {
 		case "sound1":
 			file = sound1
@@ -77,7 +76,7 @@ class CheckboxSoundsSettingsTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName('Checkbox Sound')
+			.setName('Choose checkbox sound')
 			.setDesc('Choose a sound to play when checkbox is ticked (more sounds coming soon!)')
 			.addDropdown((text) => {
 				text.addOption("sound1", "completed_1")
