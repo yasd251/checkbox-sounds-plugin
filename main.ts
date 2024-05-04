@@ -1,6 +1,6 @@
 import { App, Plugin, PluginSettingTab, Setting, PluginManifest } from 'obsidian';
 import { Howl } from "howler";
-import { sound1, sound2, sound3 } from "./defaultSounds";
+import * as allSounds from "./defaultSounds";
 
 interface CheckboxSoundsSettings {
 	soundSetting: string;
@@ -47,19 +47,19 @@ export default class CheckboxSounds extends Plugin {
 
 function playSound(chosen_sound) {
 	// play completion sound
-	let file = sound1
+	let file = allSounds.sound1
 	switch (chosen_sound) {
 		case "sound1":
-			file = sound1
+			file = allSounds.sound1
 			break
 		case "sound2":
-			file = sound2
+			file = allSounds.sound2
 			break
 		case "sound3":
-			file = sound3
+			file = allSounds.sound3
 			break
 		default:
-			file = sound1
+			file = allSounds.sound1
 			break
 	}
 	let sound = new Howl({ src: file , preload: true })
