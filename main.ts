@@ -1,6 +1,6 @@
 import { App, Plugin, PluginSettingTab, Setting, PluginManifest } from 'obsidian';
 import { Howl } from "howler";
-import { sound1, sound2 } from "./defaultSounds";
+import { sound1, sound2, sound3 } from "./defaultSounds";
 
 interface CheckboxSoundsSettings {
 	soundSetting: string;
@@ -55,11 +55,16 @@ function playSound(chosen_sound) {
 		case "sound2":
 			file = sound2
 			break
+		case "sound3":
+			file = sound3
+			break
 		default:
 			file = sound1
 			break
 	}
-	let sound = new Howl({ src: file , preload: true }).play()
+	let sound = new Howl({ src: file , preload: true })
+	sound.volume(0.6)
+	sound.play()
 }
 
 class CheckboxSoundsSettingsTab extends PluginSettingTab {
@@ -81,6 +86,7 @@ class CheckboxSoundsSettingsTab extends PluginSettingTab {
 			.addDropdown((text) => {
 				text.addOption("sound1", "completed_1")
 				text.addOption("sound2", "pop")
+				text.addOption("sound3", "ting")
 				.onChange(async (value) => {
 					this.plugin.settings.soundSetting = value;
 					await this.plugin.saveSettings();
