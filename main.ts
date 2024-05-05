@@ -22,7 +22,7 @@ export default class CheckboxSounds extends Plugin {
 			let nodeAttributes: any = evt.targetNode?.attributes; // find all attributes of said class
 			if (nodeAttributes.class.value == "task-list-item-checkbox") {
 				// clicked on a checkbox	
-				if (nodeAttributes['data-task'].value == " ") {
+				if (nodeAttributes['data-task'].ownerElement.checked == true) {
 					// task completed, play sound
 					playSound(this.settings.soundSetting);
 				}
