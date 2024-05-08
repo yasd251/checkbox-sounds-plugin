@@ -20,11 +20,23 @@ export default class CheckboxSounds extends Plugin {
 		this.addSettingTab(new CheckboxSoundsSettingsTab(this.app, this))
 		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
 			let nodeAttributes: any = evt.targetNode?.attributes; // find all attributes of said class
-			if (nodeAttributes.class.value == "task-list-item-checkbox") {
+			let nodeClasses = nodeAttributes.class.value.split(" ")
+			if (nodeClasses.includes("task-list-item-checkbox")) {
 				// clicked on a checkbox	
-				if (nodeAttributes['data-task'].ownerElement.checked == true) {
-					// task completed, play sound
-					playSound(this.settings.soundSetting);
+				try {
+					if (nodeAttributes['data-task'].ownerElement.checked == true) {
+						// task completed, play sound
+						playSound(this.settings.soundSetting);
+					}	
+				}
+				catch(err) {
+					if (err instanceof TypeError) {
+						// can be improved soon, but this will have to do for now
+						let checkbox_ticked = nodeAttributes.class.ownerElement.checked
+						if (checkbox_ticked) {
+							playSound(this.settings.soundSetting);
+						}
+					}
 				}
 			}
 
@@ -58,6 +70,9 @@ function playSound(chosen_sound) {
 		case "sound3":
 			file = allSounds.sound3
 			break
+		case "sound4":
+			file = allSounds.sound4
+			break
 		default:
 			file = allSounds.sound1
 			break
@@ -87,6 +102,7 @@ class CheckboxSoundsSettingsTab extends PluginSettingTab {
 				text.addOption("sound1", "completed_1")
 				text.addOption("sound2", "pop")
 				text.addOption("sound3", "ting")
+				text.addOption("sound4", "kaching!")
 				.onChange(async (value) => {
 					this.plugin.settings.soundSetting = value;
 					await this.plugin.saveSettings();
