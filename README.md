@@ -13,8 +13,7 @@ You may also choose to change the sound to another sound within the Settings Tab
 1. Adding more sounds to menu
 2. Enabling Checkbox sound to play even if ticked off with CMD+L
 3. Allow users to add their own sounds!
-4. Add compatibility with [Kanban Plugin](https://github.com/mgmeyers/obsidian-kanban)!
-5. Add option to play a random sound on tick
+4. Add option to play a random sound on tick
 
 
 
