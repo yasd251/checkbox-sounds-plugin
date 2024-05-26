@@ -20,6 +20,8 @@ export default class CheckboxSounds extends Plugin {
 		this.addSettingTab(new CheckboxSoundsSettingsTab(this.app, this))
 		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
 			let nodeAttributes: any = evt.targetNode?.attributes; // find all attributes of said class
+			// Prevents an error when clicking on nodes in Canvas
+			if(nodeAttributes.class === undefined) return;
 			let nodeClasses = nodeAttributes.class.value.split(" ")
 			if (nodeClasses.includes("task-list-item-checkbox")) {
 				// clicked on a checkbox	
