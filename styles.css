@@ -1,0 +1,166 @@
+/* Style for the animation container */
+.checkbox-animation {
+    position: fixed;
+    z-index: 1000;
+    pointer-events: none;
+    user-select: none;
+    transform-origin: center center;
+}
+
+/* Optional: Add a subtle glow effect */
+.checkbox-animation::after {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+    z-index: -1;
+    opacity: 0.6;
+}
+
+/* Optional: Style for multiple emojis */
+.checkbox-animation span {
+    display: inline-block;
+    animation: float 1s ease-out infinite;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+/* Optional: Add more specific styles for different animation types */
+.checkbox-animation.firework {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
+    animation: firework 1s ease-out forwards;
+}
+
+@keyframes firework {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+        box-shadow: 0 0 0 0 white, 0 0 0 0 #ff3300, 0 0 0 0 #00ff00, 0 0 0 0 #0066ff;
+    }
+    100% {
+        transform: scale(30);
+        opacity: 0;
+        box-shadow: 0 0 0 5px rgba(255,255,255,0), 0 0 0 10px rgba(255,51,0,0), 0 0 0 15px rgba(0,255,0,0), 0 0 0 20px rgba(0,102,255,0);
+    }
+}
+
+/* Confetti animation */
+.checkbox-animation.confetti {
+    width: 10px;
+    height: 10px;
+    animation: confetti 5s ease-out forwards;
+}
+
+.checkbox-animation.confetti::before,
+.checkbox-animation.confetti::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: #ff3300;
+    animation: confetti-rotate 5s linear infinite;
+}
+
+.checkbox-animation.confetti::after {
+    background: #00ff00;
+    animation-duration: 3s;
+}
+
+@keyframes confetti {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(var(--tx, 20px), var(--ty, 200px));
+    }
+}
+
+@keyframes confetti-rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Particle effect (can be used for both firework and confetti) */
+.particle {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    animation: particle 1s ease-out forwards;
+}
+
+@keyframes particle {
+    0% {
+        transform: scale(1) translate(0, 0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) translate(var(--tx), var(--ty));
+        opacity: 0;
+    }
+}
+
+/* Hypno animation */
+.checkbox-animation.hypno {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hypno-ring {
+    position: absolute;
+    border: 5px solid;
+    border-radius: 50%;
+    animation: hypno-spin 2s linear infinite, hypno-pulse 1s ease-in-out infinite alternate;
+}
+
+.hypno-ring:nth-child(1) { width: 20px; height: 20px; }
+.hypno-ring:nth-child(2) { width: 40px; height: 40px; }
+.hypno-ring:nth-child(3) { width: 60px; height: 60px; }
+.hypno-ring:nth-child(4) { width: 80px; height: 80px; }
+.hypno-ring:nth-child(5) { width: 100px; height: 100px; }
+
+@keyframes hypno-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes hypno-pulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.1); }
+}
+
+.hypno-message {
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    animation: hypno-message 2s ease-in-out infinite alternate;
+}
+
+@keyframes hypno-message {
+    0% { transform: scale(1); opacity: 0.5; }
+    100% { transform: scale(1.2); opacity: 1; }
+}
