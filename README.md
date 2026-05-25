@@ -4,11 +4,11 @@ Adds a completion sound and optional animation when a checkbox is ticked off.
 
 ## How to Use
 1. Activate the plugin within the "Community Plugins" tab
-2. Tick off any checkbox — by mouse, keyboard shortcut, or any other method
+2. Tick off any checkbox using mouse, keyboard shortcut, or any other method
 3. A completion sound will be played!
 
 ## Adding Your Own Sounds
-Drop any `.mp3`, `.wav`, `.ogg`, or `.webm` file into the plugin's `assets` folder. It will automatically appear in the sound dropdown — no restart needed.
+Drop any `.mp3`, `.wav`, `.ogg`, or `.webm` file into the plugin's `assets` folder. It will automatically appear in the sound dropdown 
 
 You can open the assets folder directly from the settings tab using the folder button next to the sound dropdown.
 
