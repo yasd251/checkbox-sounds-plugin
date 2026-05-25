@@ -1,3 +1,11 @@
 {
-  "soundSetting": "sound4"
+  "soundSetting": "electronic.wav",
+  "enableAnimation": true,
+  "animationType": "confetti",
+  "animationSize": 200,
+  "animationPosition": "center",
+  "customX": 50,
+  "customY": 50,
+  "randomizePosition": false,
+  "randomAreaPadding": 0
 }

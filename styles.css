@@ -67,20 +67,6 @@
     animation: confetti 5s ease-out forwards;
 }
 
-.checkbox-animation.confetti::before,
-.checkbox-animation.confetti::after {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: #ff3300;
-    animation: confetti-rotate 5s linear infinite;
-}
-
-.checkbox-animation.confetti::after {
-    background: #00ff00;
-    animation-duration: 3s;
-}
 
 @keyframes confetti {
     0% {
@@ -91,14 +77,6 @@
     }
 }
 
-@keyframes confetti-rotate {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
 
 /* Particle effect (can be used for both firework and confetti) */
 .particle {
