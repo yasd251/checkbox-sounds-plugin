@@ -1,77 +1,85 @@
-import { App, Plugin, PluginSettingTab, Setting, PluginManifest } from 'obsidian';
+import { App, Plugin, PluginSettingTab, Setting, normalizePath, FileSystemAdapter } from 'obsidian';
 import { Howl } from "howler";
-import * as allSounds from "./defaultSounds";
 
 interface CheckboxSoundsSettings {
 	soundSetting: string;
 	enableAnimation: boolean;
 	animationType: 'firework' | 'confetti' | 'hypno' | 'random';
-	animationSize: number; // New setting for animation size
-	animationPosition: 'center' | 'custom';
-	customX: number;
-	customY: number;
-	randomizePosition: boolean;
-	randomAreaPadding: number;
+	animationSize: number;
 }
 
 const DEFAULT_SETTINGS: CheckboxSoundsSettings = {
-	soundSetting: 'sound1',
+	soundSetting: '',
 	enableAnimation: false,
-	animationType: 'firework',
-	animationSize: 200, // Default size (100%)
-	animationPosition: 'center',
-	customX: 50,
-	customY: 50,
-	randomizePosition: true,
-	randomAreaPadding: 0,
+	animationType: 'confetti',
+	animationSize: 200,
 }
 
 export default class CheckboxSounds extends Plugin {
-	settings: CheckboxSoundsSettings;
-	manifest: PluginManifest;
-
+	settings!: CheckboxSoundsSettings;
+	availableSounds: string[] = [];
 
 	async onload() {
 		await this.loadSettings();
-		this.addSettingTab(new CheckboxSoundsSettingsTab(this.app, this))
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			let nodeAttributes: any = evt.targetNode?.attributes; // find all attributes of said class
-			// Prevents an error when clicking on nodes in Canvas
-			if(nodeAttributes.class === undefined) return;
-			let nodeClasses = nodeAttributes.class.value.split(" ")
-			if (nodeClasses.includes("task-list-item-checkbox")) {
-				// clicked on a checkbox	
-				try {
-					if (nodeAttributes['data-task'].ownerElement.checked == true) {
-						// task completed, play sound
-						playSound(this.settings.soundSetting);
-						// Add animation if enabled
-						if (this.settings.enableAnimation) {
-							this.showAnimation(evt.target as HTMLElement);
-						}
-					}	
-				}
-				catch(err) {
-					if (err instanceof TypeError) {
-						// can be improved soon, but this will have to do for now
-						let checkbox_ticked = nodeAttributes.class.ownerElement.checked
-						if (checkbox_ticked) {
-							playSound(this.settings.soundSetting);
-							// Add animation if enabled
-							if (this.settings.enableAnimation) {
-								this.showAnimation(evt.target as HTMLElement);
-							}
-						}
+		this.availableSounds = await this.loadAvailableSounds();
+
+		if (this.availableSounds.length > 0 && !this.availableSounds.includes(this.settings.soundSetting)) {
+			this.settings.soundSetting = this.availableSounds[0];
+		}
+
+		this.addSettingTab(new CheckboxSoundsSettingsTab(this.app, this));
+
+		const observer = new MutationObserver((mutations) => {
+			for (const mutation of mutations) {
+				if (mutation.type !== 'attributes') continue;
+				const el = mutation.target as HTMLElement;
+				if (!el.classList.contains('task-list-item-checkbox')) continue;
+				const checkbox = el as HTMLInputElement;
+				// oldValue is empty/null when unchecked, 'x' when checked
+				// only fire when transitioning to checked
+				if (checkbox.checked && mutation.oldValue !== 'x') {
+					this.playSound(this.settings.soundSetting);
+					if (this.settings.enableAnimation) {
+						this.showAnimation(checkbox);
 					}
 				}
 			}
-
 		});
 
+		observer.observe(document.body, {
+			subtree: true,
+			attributes: true,
+			attributeFilter: ['data-task'],
+			attributeOldValue: true,
+		});
+
+		this.register(() => observer.disconnect());
 		this.loadStyles();
 	}
 
 	onunload() {
+	}
+
+	async loadAvailableSounds(): Promise<string[]> {
+		const assetsPath = normalizePath(`${this.manifest.dir}/assets`);
+		try {
+			const result = await this.app.vault.adapter.list(assetsPath);
+			return result.files
+				.filter(f => /\.(mp3|wav|ogg|webm)$/i.test(f))
+				.map(f => f.split('/').pop()!);
+		} catch {
+			return [];
+		}
+	}
+
+	playSound(filename: string) {
+		if (!filename) return;
+		const url = this.app.vault.adapter.getResourcePath(
+			normalizePath(`${this.manifest.dir}/assets/${filename}`)
+		);
+		const sound = new Howl({ src: [url] });
+		sound.volume(0.6);
+		sound.play();
 	}
 
 	async loadSettings() {
@@ -83,7 +91,7 @@ export default class CheckboxSounds extends Plugin {
 	}
 
 	// New method to show animation
-	showAnimation(target: HTMLElement) {
+	showAnimation(el: HTMLElement) {
 		let animationType = this.settings.animationType;
 		if (animationType === 'random') {
 			const types: ('firework' | 'confetti' | 'hypno')[] = ['firework', 'confetti', 'hypno'];
@@ -94,29 +102,14 @@ export default class CheckboxSounds extends Plugin {
 		animationEl.className = `checkbox-animation ${animationType}`;
 		document.body.appendChild(animationEl);
 
+		const rect = el.getBoundingClientRect();
+		const x = rect.left + rect.width / 2;
+		const y = rect.top + rect.height / 2;
+
 		const scale = this.settings.animationSize / 100;
-		let transform = `scale(${scale})`;
-
-		if (this.settings.animationPosition === 'center') {
-			if (this.settings.randomizePosition) {
-				const padding = this.settings.randomAreaPadding;
-				const randomX = 50 + (Math.random() - 0.5) * (60 - padding * 2);
-				const randomY = 50 + (Math.random() - 0.5) * (60 - padding * 2);
-				animationEl.style.left = `${randomX}%`;
-				animationEl.style.top = `${randomY}%`;
-				transform += ` translate(-50%, -50%)`;
-			} else {
-				animationEl.style.left = '50%';
-				animationEl.style.top = '50%';
-				transform += ' translate(-50%, -50%)';
-			}
-		} else {
-			animationEl.style.left = `${this.settings.customX}%`;
-			animationEl.style.top = `${this.settings.customY}%`;
-			transform += ` translate(${this.settings.customX}%, ${this.settings.customY}%)`;
-		}
-
-		animationEl.style.transform = transform;
+		animationEl.style.left = `${x}px`;
+		animationEl.style.top = `${y}px`;
+		animationEl.style.transform = `scale(${scale}) translate(-50%, -50%)`;
 
 		if (animationType === 'hypno') {
 			this.createHypnoAnimation(animationEl);
@@ -125,7 +118,7 @@ export default class CheckboxSounds extends Plugin {
 		}
 
 		// Remove the animation element after it's done
-		setTimeout(() => animationEl.remove(), 5000);
+		setTimeout(() => animationEl.remove(), 3000);
 	}
 
 	createParticles(parent: HTMLElement, count: number) {
@@ -168,30 +161,6 @@ export default class CheckboxSounds extends Plugin {
 
 }
 
-function playSound(chosen_sound) {
-	// play completion sound
-	let file = allSounds.sound1
-	switch (chosen_sound) {
-		case "sound1":
-			file = allSounds.sound1
-			break
-		case "sound2":
-			file = allSounds.sound2
-			break
-		case "sound3":
-			file = allSounds.sound3
-			break
-		case "sound4":
-			file = allSounds.sound4
-			break
-		default:
-			file = allSounds.sound1
-			break
-	}
-	let sound = new Howl({ src: file , preload: true })
-	sound.volume(0.6)
-	sound.play()
-}
 
 class CheckboxSoundsSettingsTab extends PluginSettingTab {
 	plugin: CheckboxSounds;
@@ -208,17 +177,33 @@ class CheckboxSoundsSettingsTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Choose checkbox sound')
-			.setDesc('Choose a sound to play when checkbox is ticked (more sounds coming soon!)')
-			.addDropdown((text) => {
-				text.addOption("sound1", "completed_1")
-				text.addOption("sound2", "pop")
-				text.addOption("sound3", "ting")
-				text.addOption("sound4", "kaching!")
-				.onChange(async (value) => {
+			.setDesc('Drop .mp3 or .wav files into the plugin\'s assets folder to add more sounds.')
+			.addDropdown((dropdown) => {
+				for (const filename of this.plugin.availableSounds) {
+					const label = filename.replace(/\.[^.]+$/, '');
+					dropdown.addOption(filename, label);
+				}
+				dropdown.setValue(this.plugin.settings.soundSetting);
+				dropdown.onChange(async (value) => {
 					this.plugin.settings.soundSetting = value;
 					await this.plugin.saveSettings();
-				  })
-				text.setValue(this.plugin.settings.soundSetting)
+					this.plugin.playSound(value);
+				});
+			})
+			.addButton((btn) => {
+				btn.setIcon('folder-open')
+					.setTooltip('Open assets folder')
+					.onClick(() => {
+						const adapter = this.plugin.app.vault.adapter;
+						if (adapter instanceof FileSystemAdapter) {
+							const assetsPath = require('path').join(
+								adapter.getBasePath(),
+								this.plugin.manifest.dir,
+								'assets'
+							);
+							require('electron').shell.openPath(assetsPath);
+						}
+					});
 			})
 
 		new Setting(containerEl)
@@ -262,74 +247,6 @@ class CheckboxSoundsSettingsTab extends PluginSettingTab {
 					})
 				);
 
-			new Setting(containerEl)
-				.setName('Animation Position')
-				.setDesc('Choose where the animation appears')
-				.addDropdown(dropdown => dropdown
-					.addOption('center', 'Center')
-					.addOption('custom', 'Custom')
-					.setValue(this.plugin.settings.animationPosition)
-					.onChange(async (value) => {
-						this.plugin.settings.animationPosition = value as 'center' | 'custom';
-						await this.plugin.saveSettings();
-						this.display(); // Refresh to show/hide custom position settings
-					})
-				);
-
-			if (this.plugin.settings.animationPosition === 'center') {
-				new Setting(containerEl)
-					.setName('Randomize Center Position')
-					.setDesc('Slightly randomize the animation position within the center area')
-					.addToggle(toggle => toggle
-						.setValue(this.plugin.settings.randomizePosition)
-						.onChange(async (value) => {
-							this.plugin.settings.randomizePosition = value;
-							await this.plugin.saveSettings();
-							this.display(); // Refresh to show/hide random area size slider
-						})
-					);
-
-				if (this.plugin.settings.randomizePosition) {
-					new Setting(containerEl)
-						.setName('Random Area Size')
-						.setDesc('Adjust the size of the area where animations can appear (smaller value = more centered)')
-						.addSlider(slider => slider
-							.setLimits(0, 30, 1)
-							.setValue(this.plugin.settings.randomAreaPadding)
-							.setDynamicTooltip()
-							.onChange(async (value) => {
-								this.plugin.settings.randomAreaPadding = value;
-								await this.plugin.saveSettings();
-							})
-						);
-				}
-			} else if (this.plugin.settings.animationPosition === 'custom') {
-				new Setting(containerEl)
-					.setName('Custom X Position')
-					.setDesc('Percentage from left (0-100)')
-					.addSlider(slider => slider
-						.setLimits(0, 100, 1)
-						.setValue(this.plugin.settings.customX)
-						.setDynamicTooltip()
-						.onChange(async (value) => {
-							this.plugin.settings.customX = value;
-							await this.plugin.saveSettings();
-						})
-					);
-
-				new Setting(containerEl)
-					.setName('Custom Y Position')
-					.setDesc('Percentage from top (0-100)')
-					.addSlider(slider => slider
-						.setLimits(0, 100, 1)
-						.setValue(this.plugin.settings.customY)
-						.setDynamicTooltip()
-						.onChange(async (value) => {
-							this.plugin.settings.customY = value;
-							await this.plugin.saveSettings();
-						})
-					);
-			}
 		}
 	}
 }
