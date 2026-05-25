@@ -1,5 +1,14 @@
 import { App, Plugin, PluginSettingTab, Setting, normalizePath, FileSystemAdapter } from 'obsidian';
 import { Howl } from "howler";
+import calmBellUrl from './assets/calm bell.mp3';
+import tingUrl from './assets/ting.wav';
+import popUrl from './assets/pop.mp3';
+
+const BUNDLED_SOUNDS: { filename: string; url: string }[] = [
+	{ filename: 'calm bell.mp3', url: calmBellUrl },
+	{ filename: 'ting.wav', url: tingUrl },
+	{ filename: 'pop.mp3', url: popUrl },
+];
 
 interface CheckboxSoundsSettings {
 	soundSetting: string;
@@ -61,23 +70,30 @@ export default class CheckboxSounds extends Plugin {
 	}
 
 	async loadAvailableSounds(): Promise<string[]> {
+		const bundledNames = BUNDLED_SOUNDS.map(s => s.filename);
 		const assetsPath = normalizePath(`${this.manifest.dir}/assets`);
 		try {
 			const result = await this.app.vault.adapter.list(assetsPath);
-			return result.files
+			const userSounds = result.files
 				.filter(f => /\.(mp3|wav|ogg|webm)$/i.test(f))
-				.map(f => f.split('/').pop()!);
+				.map(f => f.split('/').pop()!)
+				.filter(f => !bundledNames.includes(f));
+			return [...bundledNames, ...userSounds];
 		} catch {
-			return [];
+			return bundledNames;
 		}
 	}
 
 	playSound(filename: string) {
 		if (!filename) return;
-		const url = this.app.vault.adapter.getResourcePath(
-			normalizePath(`${this.manifest.dir}/assets/${filename}`)
-		);
-		const sound = new Howl({ src: [url] });
+		const bundled = BUNDLED_SOUNDS.find(s => s.filename === filename);
+		const src = bundled
+			? bundled.url
+			: this.app.vault.adapter.getResourcePath(
+				normalizePath(`${this.manifest.dir}/assets/${filename}`)
+			);
+		const ext = filename.split('.').pop()?.toLowerCase() ?? 'mp3';
+		const sound = new Howl({ src: [src], format: [ext] });
 		sound.volume(0.6);
 		sound.play();
 	}
@@ -193,7 +209,7 @@ class CheckboxSoundsSettingsTab extends PluginSettingTab {
 			.addButton((btn) => {
 				btn.setIcon('folder-open')
 					.setTooltip('Open assets folder')
-					.onClick(() => {
+					.onClick(async () => {
 						const adapter = this.plugin.app.vault.adapter;
 						if (adapter instanceof FileSystemAdapter) {
 							const assetsPath = require('path').join(
@@ -201,6 +217,7 @@ class CheckboxSoundsSettingsTab extends PluginSettingTab {
 								this.plugin.manifest.dir,
 								'assets'
 							);
+							require('fs').mkdirSync(assetsPath, { recursive: true });
 							require('electron').shell.openPath(assetsPath);
 						}
 					});

@@ -32,6 +32,10 @@ const context = await esbuild.context({
 		"@lezer/highlight",
 		"@lezer/lr",
 		...builtins],
+	loader: {
+		'.mp3': 'dataurl',
+		'.wav': 'dataurl',
+	},
 	format: "cjs",
 	target: "es2018",
 	logLevel: "info",
